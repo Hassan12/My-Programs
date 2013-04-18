@@ -1,0 +1,377 @@
+Birthday-Book
+=============
+
+A digital book used to store birthdays.
+
+
+* Hassan Waheed, Homework 8, April 9th, 2013
+ * This progeam is designed to store birthdays. It takes in command from the user
+ * and goes through with the commands. It has the capability of doing the following
+ * add, load, save, list, help, quit and search
+*/
+
+using System;
+using System.IO;
+
+
+// this class was made to store multiple entries as one 
+// in an array
+class Birthdays
+{
+    public string firstName;
+    public string lastName;
+    public int day;
+    public int month;
+    public int year;
+}
+
+
+class Program
+{
+    static void Main()
+    {
+        // temp array is an array made for splitting up commands
+        // inputed by the user
+        string[] tempArray;
+        bool Quit = false;
+        int birthdayCounter = 0;
+
+        Console.WriteLine("Welcome to the Birthday book!");
+        Console.WriteLine("Please choose one of the options");
+        Console.WriteLine("add");
+        Console.WriteLine("list");
+        Console.WriteLine("delete #");
+        Console.WriteLine("search name");
+        Console.WriteLine("save filename");
+        Console.WriteLine("load filename");
+        Console.WriteLine("help");
+        Console.WriteLine("quit");
+
+        Birthdays[] newBirthdays = new Birthdays[2];
+
+        while (Quit != true)
+        {
+            // this part takes in commands from the user and 
+            // splits them by space into tempArray
+            string Command = Console.ReadLine();
+            tempArray = Command.Split();
+
+
+
+            // this part runs if the person uses the add command
+            // if the command is valid a method is called to add the entry
+            // into an array called newBirthdays.
+            if (tempArray[0] == "add")
+            {
+                if (tempArray.Length != 6)
+                {
+                    Console.WriteLine("This is an invalid command. Your command should have 5 arguements.");
+                }
+                else
+                {
+                    try
+                    {
+
+                        newBirthdays = Add_Birthdays(newBirthdays, birthdayCounter, tempArray);
+                        birthdayCounter = birthdayCounter + 1;
+                        Console.WriteLine("Added " + tempArray[1] + tempArray[2] + ", " + tempArray[3] + "/ " + tempArray[4] + "/ " + tempArray[5]);
+                    }
+                    catch
+                    {
+                        birthdayCounter = birthdayCounter + 1;
+                        Console.WriteLine("The arguements you entered are invalid. Please use integers for dates.");
+                        newBirthdays = ExpandArray(newBirthdays);
+                        newBirthdays[birthdayCounter - 1] = null;
+                        birthdayCounter = birthdayCounter - 1;
+                    }
+                }
+            }
+
+            // calls to a method that lists all the entries in 
+            // the birthday book.
+            if (tempArray[0] == "list")
+            {
+
+                ListAll(newBirthdays);
+
+            }
+
+            // This is the delete command. It checks if the entry exsists,
+            // if it does it calls to a method where the specific entry would be 
+            // deleted. If that entry does not exists it throws an error 
+            // message.
+            if (tempArray[0] == "delete")
+            {
+                try
+                {
+                    int number = int.Parse(tempArray[1]);
+
+                    if (newBirthdays[number - 1] == null || number > newBirthdays.Length)
+                    {
+                        Console.WriteLine("Im sorry but that entry does not exsist.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Are you sure you want to delete " + tempArray[1] + "? " + "y/n");
+
+                        string answer = Console.ReadLine();
+                        while (answer != "y" && answer != "n")
+                        {
+                            Console.WriteLine("please type in a proper answer");
+                            answer = Console.ReadLine();
+                        }
+                        int toDelete = int.Parse(tempArray[1]) - 1;
+
+
+                        if (answer == "y" && newBirthdays[toDelete] == null)
+                        {
+                            Console.WriteLine("Im sorry but that entry does not exsist.");
+                        }
+
+                        if ((answer == "y") && (newBirthdays[toDelete] != null))
+                        {
+                            if (toDelete <= newBirthdays.Length - 1)
+                            {
+
+                                birthdayCounter = Delete(newBirthdays, tempArray, birthdayCounter);
+
+                            }
+                        }
+
+
+
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Im sorry but that entry does not exsist.");
+                }
+            }
+
+
+            // this is the search command. It calls to a method
+            // that searchs for a name in the birthday book.
+            // if it is not found it displays an error message   
+            if (tempArray[0] == "search")
+            {
+                try
+                {
+                    Search_Name(newBirthdays, tempArray);
+                }
+                catch
+                {
+                    Console.WriteLine("Im sorry but that entry does not exsist.");
+                }
+            }
+
+
+            // this part saves the birthday book into a file
+            if (tempArray[0] == "save")
+            {
+                Save(newBirthdays, tempArray);
+            }
+
+            // this command loads the birhtday book from a file
+            // if the file does not exisit it displays an error
+            // message
+            if (tempArray[0] == "load")
+            {
+                try
+                {
+                    newBirthdays = Load(newBirthdays, tempArray, birthdayCounter);
+                    birthdayCounter = getNumber(newBirthdays);
+                }
+                catch
+                {
+                    Console.WriteLine("sorry but the files was not found");
+                }
+
+            }
+
+            // the program shuts down
+            if (tempArray[0] == "quit")
+            {
+                Quit = true;
+            }
+
+            // displays the commands to the user
+            if (tempArray[0] == "help")
+            {
+                Console.WriteLine("Please choose one of the options");
+                Console.WriteLine("add");
+                Console.WriteLine("list");
+                Console.WriteLine("delete #");
+                Console.WriteLine("search name");
+                Console.WriteLine("save filename");
+                Console.WriteLine("load filename");
+                Console.WriteLine("help");
+                Console.WriteLine("quit");
+            }
+
+
+        }
+    }
+
+    // this is the method used to enter the entries into the birthday book
+    // only for the add command. if the array is too small it calls to
+    // another method that expands the array then it comes back to
+    // finish adding the array
+    static Birthdays[] Add_Birthdays(Birthdays[] newBirthdays, int birthdayCounter, string[] tempArray)
+    {
+
+        if (birthdayCounter >= newBirthdays.Length)
+        {
+            newBirthdays = ExpandArray(newBirthdays);
+        }
+        newBirthdays[birthdayCounter] = new Birthdays();
+        newBirthdays[birthdayCounter].firstName = tempArray[1];
+        newBirthdays[birthdayCounter].lastName = tempArray[2];
+        newBirthdays[birthdayCounter].day = int.Parse(tempArray[3]);
+        newBirthdays[birthdayCounter].month = int.Parse(tempArray[4]);
+        newBirthdays[birthdayCounter].year = int.Parse(tempArray[5]);
+
+        return newBirthdays;
+    }
+
+    // expands the array
+    static Birthdays[] ExpandArray(Birthdays[] array)
+    {
+        Birthdays[] result = new Birthdays[array.Length * 2];
+        for (int counter = 0; counter < array.Length; counter = counter + 1)
+        {
+            result[counter] = array[counter];
+        }
+
+        return result;
+    }
+
+    // This method lists all the entries
+    static void ListAll(Birthdays[] array)
+    {
+        for (int counter = 0; counter < array.Length; counter = counter + 1)
+        {
+            if (array[counter] != null)
+            {
+                Console.WriteLine((counter + 1) + "." + array[counter].firstName + " " + array[counter].lastName + "," + array[counter].day + "/" + array[counter].month + "/" + array[counter].year);
+            }
+
+        }
+
+    }
+
+    // This method deletes the desired entry.
+    static int Delete(Birthdays[] newBirthdays, string[] tempArray, int birthdayCounter)
+    {
+        int counter = int.Parse(tempArray[1]) - 1;
+        for (int i = counter; i < newBirthdays.Length - 1; i++)
+        {
+            newBirthdays[i] = newBirthdays[i + 1];
+        }
+
+        newBirthdays[birthdayCounter - 1] = null;
+        birthdayCounter = birthdayCounter - 1;
+
+        return birthdayCounter;
+    }
+
+    // this method searches for a perticulary name in the Birthday book
+    static void Search_Name(Birthdays[] newBirthdays, string[] tempArray)
+    {
+        for (int counter = 0; counter < newBirthdays.Length - 1; counter++)
+        {
+
+            if ((newBirthdays[counter].firstName).ToLower() == (tempArray[1]).ToLower())
+            {
+                Console.WriteLine(newBirthdays[counter].firstName + " " + newBirthdays[counter].lastName + " " + newBirthdays[counter].day + " " + newBirthdays[counter].month + " " + newBirthdays[counter].year);
+            }
+
+        }
+    }
+
+    // this entry saves the birthday book into a text file
+    static void Save(Birthdays[] newBirthdays, string[] temparray)
+    {
+
+        StreamWriter output = new StreamWriter(temparray[1]);
+        for (int counter = 0; ((counter < newBirthdays.Length) && (newBirthdays[counter] != null)); counter++)
+        {
+            output.WriteLine("add " + newBirthdays[counter].firstName + " " + newBirthdays[counter].lastName + " " + newBirthdays[counter].day + " " + newBirthdays[counter].month + " " + newBirthdays[counter].year);
+        }
+        output.Close();
+
+    }
+
+    // this entry loads the birthday book from a text file
+    static Birthdays[] Load(Birthdays[] newBirthdays, string[] tempArray, int birthdayCounter)
+    {
+        StreamReader txtFile = new StreamReader(tempArray[1]);
+        string Line = txtFile.ReadLine();
+
+        while (Line != null)
+        {
+            string[] tempArray2 = Line.Split();
+            if (tempArray2[0] == "add")
+            {
+
+                newBirthdays = Add_Birthdays2(newBirthdays, birthdayCounter, tempArray2);
+                birthdayCounter = birthdayCounter + 1;
+
+            }
+            Line = txtFile.ReadLine();
+
+            if (tempArray2[0] != "add" || (tempArray2.Length > 6 || tempArray2.Length < 6))
+            {
+                Console.WriteLine("Sorry but the file is in the wrong format");
+            }
+
+        }
+
+        return newBirthdays;
+    }
+
+    // this method adds entries only for the load command
+    static Birthdays[] Add_Birthdays2(Birthdays[] newBirthdays, int birthdayCounter, string[] tempArray)
+    {
+        try
+        {
+            if (birthdayCounter >= newBirthdays.Length)
+            {
+                newBirthdays = ExpandArray(newBirthdays);
+            }
+
+            newBirthdays[birthdayCounter] = new Birthdays();
+            newBirthdays[birthdayCounter].firstName = tempArray[1];
+            newBirthdays[birthdayCounter].lastName = tempArray[2];
+            newBirthdays[birthdayCounter].day = int.Parse(tempArray[3]);
+            newBirthdays[birthdayCounter].month = int.Parse(tempArray[4]);
+            newBirthdays[birthdayCounter].year = int.Parse(tempArray[5]);
+        }
+        catch
+        {
+            Console.WriteLine("Sorry, incorrect format!");
+            newBirthdays[birthdayCounter] = null;
+        }
+
+
+
+        return newBirthdays;
+    }
+
+    // this method gets the number of entries in the birthday book
+    static int getNumber(Birthdays[] newBirthdays)
+    {
+
+        int counter = 0;
+        while ((counter < newBirthdays.Length) && (newBirthdays[counter] != null))
+        {
+
+            counter++;
+        }
+
+        return counter;
+    }
+
+
+
+
+}
