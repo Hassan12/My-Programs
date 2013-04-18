@@ -1,0 +1,64 @@
+using System;
+using System.Net;
+using System.IO;
+
+
+class Program
+{
+    static void Main()
+    {
+
+        WebClient client = new WebClient();
+        bool properURL = false;
+        while (properURL == false)
+        {
+            System.Console.WriteLine("Please enter the Sub-reddit URL, (proper format: http://www.reddit.com/r/subreddit)");
+            string url = System.Console.ReadLine();
+
+            try
+            {
+                string htmlCode = client.DownloadString(url);
+                while (url[22] != 'r')
+                {
+                    System.Console.WriteLine("Reddit Url not recognized");
+                    System.Console.WriteLine("Please enter the Sub-reddit URL, (proper format: http://www.reddit.com/r/subreddit)");
+                    url = System.Console.ReadLine();
+                }
+                string[] temparray = htmlCode.Split();
+
+                if ( htmlCode != null)
+                {
+                    properURL = true;
+                }
+
+
+
+                for (int counter = 0; counter <= temparray.Length - 1; counter = counter + 1)
+                {
+                    if ((counter < temparray.Length + 2) && (temparray[counter] == "><img") && (temparray[counter + 1] == "id='header-img'"))
+                    {
+                        string j = temparray[counter + 2];
+                        int startIndex = j.IndexOf('"') + 1;
+                        int length = j.IndexOf('"', startIndex) - startIndex;
+                        string jj = (j.Substring(startIndex, length));
+                        string fileName = "Downloaded Reddit.png";
+                        client.DownloadFile(jj, fileName);
+                    }
+
+                   
+
+                }
+
+            }
+            catch
+            {
+                System.Console.WriteLine("Invalid URL!");
+            }
+        }
+    }
+}
+
+    
+
+
+
