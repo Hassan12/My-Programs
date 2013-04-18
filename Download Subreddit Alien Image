@@ -48,7 +48,7 @@ class Program
                    
 
                 }
-
+                System.Console.WriteLine("Image has been downloaded");
             }
             catch
             {
@@ -57,8 +57,6 @@ class Program
         }
     }
 }
-
-    
 
 
 
